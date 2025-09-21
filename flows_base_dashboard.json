@@ -1,0 +1,294 @@
+[
+    {
+        "id": "29e0bea607efb208",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0fbb21290c71c7df",
+        "type": "mqtt in",
+        "z": "29e0bea607efb208",
+        "name": "entrada MQTT",
+        "topic": "fabrica/contador",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "8060ceda081ba9ad",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 180,
+        "wires": [
+            [
+                "88e33de01ecc5bf8"
+            ]
+        ]
+    },
+    {
+        "id": "793f7c221fc79764",
+        "type": "debug",
+        "z": "29e0bea607efb208",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "88e33de01ecc5bf8",
+        "type": "function",
+        "z": "29e0bea607efb208",
+        "name": "identiticar Peças",
+        "func": "// Recupera o vetor anterior do contexto (se não existir, cria [null, null, null])\n// context → é o contexto do nó. Só vale para esse nó específico.\nlet vetorAnterior = context.get('vetorAnterior') || [null, null, null];\n\n// navega dentro do vetor de array e retorna em vetor numérico para cada item\nlet vetorAtual = msg.payload.map(v => Number(v));\n\n// Cria vetor de mensagens de saída (uma para cada tipo de peça)\nlet mensagensParaEnviar = [null, null, null];\n\n// Captura data/hora local\nlet localStr = new Date().toLocaleString('pt-BR', {\n    timeZone: 'America/Sao_Paulo',\n    hour12: false\n});\nlet [dataAtual, horaAtual] = localStr.split(',');\ndataAtual = dataAtual.trim();\nhoraAtual = horaAtual.trim();\n\n// Tipos de peças\nlet tiposDePeca = [\"Grande\", \"Média\", \"Pequena\"];\n\nfor (let i = 0; i < 3; i++) {\n    mensagensParaEnviar[i] = null;\n    if (vetorAtual[i] !== vetorAnterior[i]) {\n        mensagensParaEnviar[i] = {\n            payload: {\n                quantidade: vetorAtual[i],\n                tipo: tiposDePeca[i],\n                data: dataAtual,\n                hora: horaAtual\n            }\n        };\n    }\n}\n\n// Atualiza o contexto\ncontext.set('vetorAnterior', vetorAtual);\n\nreturn mensagensParaEnviar;",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 180,
+        "wires": [
+            [
+                "07a345cd3ef56a28",
+                "0e404f5b31fb265e",
+                "687525c8a1a8e8a4",
+                "1397f47e1a19e9fb"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "c855129b96f581c2",
+        "type": "ui_text",
+        "z": "29e0bea607efb208",
+        "group": "9f562da50d372259",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Data",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": true,
+        "font": "Verdana,Verdana,Geneva,sans-serif",
+        "fontSize": "18",
+        "color": "#3629f5",
+        "x": 590,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "3f3541570d55975c",
+        "type": "ui_gauge",
+        "z": "29e0bea607efb208",
+        "name": "",
+        "group": "9f562da50d372259",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Produção vs Meta",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 770,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "07a345cd3ef56a28",
+        "type": "function",
+        "z": "29e0bea607efb208",
+        "name": "data",
+        "func": "msg.payload = msg.payload.data;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 20,
+        "wires": [
+            [
+                "c855129b96f581c2"
+            ]
+        ]
+    },
+    {
+        "id": "0e404f5b31fb265e",
+        "type": "function",
+        "z": "29e0bea607efb208",
+        "name": "tempo_ultima_peca",
+        "func": "msg.payload = msg.payload.hora;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 60,
+        "wires": [
+            [
+                "921879c665615f46"
+            ]
+        ]
+    },
+    {
+        "id": "687525c8a1a8e8a4",
+        "type": "function",
+        "z": "29e0bea607efb208",
+        "name": "classifica_tipo",
+        "func": "msg.payload = msg.payload.tipo;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 100,
+        "wires": [
+            [
+                "af83d621f241821e"
+            ]
+        ]
+    },
+    {
+        "id": "1397f47e1a19e9fb",
+        "type": "function",
+        "z": "29e0bea607efb208",
+        "name": "qtd_pecas",
+        "func": "msg.payload = msg.payload.quantidade;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 140,
+        "wires": [
+            [
+                "3f3541570d55975c"
+            ]
+        ]
+    },
+    {
+        "id": "921879c665615f46",
+        "type": "ui_text",
+        "z": "29e0bea607efb208",
+        "group": "9f562da50d372259",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Horário Última Peça",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "className": "",
+        "style": true,
+        "font": "Verdana,Verdana,Geneva,sans-serif",
+        "fontSize": "18",
+        "color": "#3629f5",
+        "x": 720,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "af83d621f241821e",
+        "type": "ui_text",
+        "z": "29e0bea607efb208",
+        "group": "9f562da50d372259",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Tipo",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": true,
+        "font": "Verdana,Verdana,Geneva,sans-serif",
+        "fontSize": "18",
+        "color": "#3629f5",
+        "x": 750,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "8060ceda081ba9ad",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "10.110.22.9",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "9f562da50d372259",
+        "type": "ui_group",
+        "name": "Grupo 1",
+        "tab": "1a693ea4d0f3f6c2",
+        "order": 1,
+        "disp": false,
+        "width": "7",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "1a693ea4d0f3f6c2",
+        "type": "ui_tab",
+        "name": "Informações",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
