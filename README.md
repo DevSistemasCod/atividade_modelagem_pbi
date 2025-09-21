@@ -1,1 +1,2 @@
-# atividade_modelagem_pbi
+# Lembre-se
+No lado do subscriber utilizamos o node-red + broker 
